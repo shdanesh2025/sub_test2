@@ -1,10 +1,6 @@
-import os
 from yt_dlp import YoutubeDL
 
 url = 'https://www.youtube.com/watch?v=blEIcn8mRGg'
-
-with open("cookies.txt", "w", encoding="utf-8") as f:
-    f.write(os.environ["YOUTUBE_COOKIES"])
 
 options = {
     'writesubtitles': True,
