@@ -1,14 +1,18 @@
-# download_sub.py
+import os
 from yt_dlp import YoutubeDL
 
-url = 'https://www.youtube.com/watch?app=desktop&v=blEIcn8mRGg'
+url = 'https://www.youtube.com/watch?v=blEIcn8mRGg'
+
+with open("cookies.txt", "w", encoding="utf-8") as f:
+    f.write(os.environ["YOUTUBE_COOKIES"])
 
 options = {
     'writesubtitles': True,
-    'writeautomaticsub': True,  # fallback to auto subs if no manual ones
-    'subtitleslangs': ['en'],   # change to ['all'] or other language codes if needed
-    'skip_download': True,      # we only want subtitles
+    'writeautomaticsub': True,
+    'subtitleslangs': ['en'],
+    'skip_download': True,
     'outtmpl': '%(title)s.%(ext)s',
+    'cookiefile': 'cookies.txt',
 }
 
 with YoutubeDL(options) as ydl:
