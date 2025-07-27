@@ -1,7 +1,7 @@
 # download_sub.py
 from yt_dlp import YoutubeDL
 
-url = 'https://www.youtube.com/watch?v=U70n1hRyL2A'
+url = 'https://www.youtube.com/watch?app=desktop&v=blEIcn8mRGg'
 
 options = {
     'writesubtitles': True,
