@@ -1,0 +1,28 @@
+name: Download YouTube Subtitle
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download-subtitle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install yt-dlp
+        run: pip install yt-dlp
+
+      - name: Run download script
+        run: python download_sub.py
+
+      - name: Upload subtitles
+        uses: actions/upload-artifact@v4
+        with:
+          name: subtitles
+          path: ./*.vtt  # or .srt depending on yt-dlp output
