@@ -7,6 +7,9 @@ jobs:
   download-subtitle:
     runs-on: ubuntu-latest
 
+    permissions:  # allow pushing
+      contents: write
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -25,8 +28,18 @@ jobs:
       - name: Run download script
         run: python download_sub.py
 
-      - name: Upload subtitles
-        uses: actions/upload-artifact@v4
-        with:
-          name: subtitles
-          path: ./*.vtt
+      - name: Zip subtitles
+        run: |
+          mkdir -p output
+          mv *.vtt output/ || true
+          cd output
+          zip subtitles.zip *.vtt || echo "No subtitles to zip"
+          cd ..
+
+      - name: Commit and push
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add output/subtitles.zip
+          git commit -m "Add zipped subtitles [auto]" || echo "Nothing to commit"
+          git push
