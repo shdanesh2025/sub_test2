@@ -25,6 +25,7 @@ def download_subtitles(url, retries=3):
         'subtitleslangs': ['en'],
         'skip_download': True,
         'outtmpl': '%(title)s.%(ext)s',
+        'subtitlesformat': 'srt',  # Set subtitle format to .srt
         'cookiefile': 'cookies.txt',
     }
 
@@ -57,8 +58,12 @@ job_index = int(sys.argv[1])  # Get job index from command-line argument
 start_index = (job_index - 1) * 10
 end_index = start_index + 10
 
-# List to keep track of all downloaded subtitles (.vtt files)
-all_vtt_files = []
+# List to keep track of all downloaded subtitles (.srt files)
+all_srt_files = []
+subtitles_mapping = []  # List to hold the mapping of subtitles to job_id
+
+# User-defined suffix for the zip file name
+suffix = "_batch1"  # Change this to whatever suffix you prefer
 
 # Iterate over the jobs in the specified range
 for job in jobs_data[start_index:end_index]:
@@ -67,18 +72,32 @@ for job in jobs_data[start_index:end_index]:
 
     # Download subtitles
     if download_subtitles(url):
-        # Collect the .vtt files in the current directory
-        vtt_files = [f for f in os.listdir() if f.endswith('.vtt')]
-        all_vtt_files.extend(vtt_files)  # Add to the list of all downloaded subtitles
+        # Collect the .srt files in the current directory
+        srt_files = [f for f in os.listdir() if f.endswith('.srt')]
+        all_srt_files.extend(srt_files)  # Add to the list of all downloaded subtitles
+        
+        # Add to subtitles mapping
+        for srt_file in srt_files:
+            subtitles_mapping.append({
+                'job_id': job_id,
+                'subtitle_file': srt_file
+            })
     else:
         print(f"Skipping {url} due to download error.")
 
-# If there are any .vtt files, zip them into one file
-if all_vtt_files:
-    zip_filename = f"subtitles{job_index}.zip"
-    zip_command = f"zip -r \"{zip_filename}\" " + " ".join([f"\"{file}\"" for file in all_vtt_files])  # Wrap filenames in quotes
-    os.system(zip_command + " || echo 'No subtitles to zip'")
+# If there are any .srt files, zip them into one file along with the JSON mapping
+if all_srt_files:
+    # Save the mapping to a JSON file
+    mapping_filename = f"subtitles_mapping_{job_index}.json"
+    with open(mapping_filename, 'w') as mapping_file:
+        json.dump(subtitles_mapping, mapping_file, indent=4)
+        print(f"Saved mapping to {mapping_filename}")
     
+    # Add suffix to zip file name
+    zip_filename = f"subtitles_{job_index}{suffix}.zip"
+    zip_command = f"zip -r \"{zip_filename}\" " + " ".join([f"\"{file}\"" for file in all_srt_files] + [mapping_filename])
+    os.system(zip_command + " || echo 'No subtitles to zip'")
+
     # Check if the zip was successful and upload it
     if os.path.exists(zip_filename):
         upload_to_mega(zip_filename)
