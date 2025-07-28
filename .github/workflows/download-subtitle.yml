@@ -7,8 +7,8 @@ jobs:
   download-subtitle:
     runs-on: ubuntu-latest
 
-    permissions:  # allow pushing
-      contents: write
+    permissions:
+      contents: write  # Allow pushing changes to the repo
 
     steps:
       - name: Checkout repo
@@ -24,6 +24,9 @@ jobs:
 
       - name: Write YOUTUBE_COOKIES to cookies.txt
         run: echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
+
+      - name: Add jobs.json to the workspace
+        run: echo "${{ secrets.JOBS_JSON }}" > jobs.json  # If the jobs.json is stored in GitHub Secrets
 
       - name: Run download script
         run: python download_sub.py
