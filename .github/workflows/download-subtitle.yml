@@ -48,3 +48,4 @@ jobs:
           git add output/subtitles.zip
           git commit -m "Add zipped subtitles [auto]" || echo "Nothing to commit"
           git push
+ 
