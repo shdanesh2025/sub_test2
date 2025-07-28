@@ -1,10 +1,10 @@
-name: Download YouTube Subtitle
+name: Download and Upload YouTube Subtitle to Mega
 
 on:
   workflow_dispatch:
 
 jobs:
-  download-subtitle:
+  download-and-upload:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,27 +21,13 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install yt-dlp
-        run: pip install yt-dlp
+      - name: Install yt-dlp and Mega-X
+        run: |
+          pip install yt-dlp mega-x
 
       - name: Write YOUTUBE_COOKIES to cookies.txt
         run: echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
 
-      - name: Run download script
+      - name: Run download and upload script
         run: python download_sub.py ${{ matrix.job_index }}
 
-      - name: Zip subtitles
-        run: |
-          mkdir -p output
-          mv *.vtt output/ || true
-          cd output
-          zip subtitles${{ matrix.job_index }}.zip *.vtt || echo "No subtitles to zip"
-          cd ..
-
-      - name: Force-push to main branch
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add output/subtitles${{ matrix.job_index }}.zip
-          git commit -m "Add subtitles${{ matrix.job_index }}.zip [auto]" || echo "Nothing to commit"
-          git push origin main --force
