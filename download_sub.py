@@ -8,7 +8,7 @@ from mega import Mega
 # Function to upload a file to Mega
 def upload_to_mega(file_path):
     mega = Mega()
-    m = mega.login(email='shdanesh2025@gmail.com', password='1234qweR@!#$GH')  # Use your Mega login credentials
+    m = mega.login(email='your_mega_email@example.com', password='your_mega_password')  # Use your Mega login credentials
     print(f"Uploading {file_path} to Mega...")
     try:
         file = m.upload(file_path)
@@ -57,6 +57,9 @@ job_index = int(sys.argv[1])  # Get job index from command-line argument
 start_index = (job_index - 1) * 10
 end_index = start_index + 10
 
+# List to keep track of all downloaded subtitles (.vtt files)
+all_vtt_files = []
+
 # Iterate over the jobs in the specified range
 for job in jobs_data[start_index:end_index]:
     url = job["url"]
@@ -64,15 +67,18 @@ for job in jobs_data[start_index:end_index]:
 
     # Download subtitles
     if download_subtitles(url):
-        # Check if subtitle files exist before zipping
+        # Collect the .vtt files in the current directory
         vtt_files = [f for f in os.listdir() if f.endswith('.vtt')]
-        if vtt_files:
-            zip_filename = f"subtitles{job_index}.zip"
-            os.system(f"zip {zip_filename} *.vtt || echo 'No subtitles to zip'")
-
-            # Upload to Mega
-            upload_to_mega(zip_filename)
-        else:
-            print(f"No subtitles found for {url}, skipping zipping and upload.")
+        all_vtt_files.extend(vtt_files)  # Add to the list of all downloaded subtitles
     else:
         print(f"Skipping {url} due to download error.")
+
+# If there are any .vtt files, zip them into one file
+if all_vtt_files:
+    zip_filename = f"subtitles{job_index}.zip"
+    os.system(f"zip {zip_filename} {' '.join(all_vtt_files)} || echo 'No subtitles to zip'")
+
+    # Upload to Mega
+    upload_to_mega(zip_filename)
+else:
+    print(f"No subtitles to zip or upload for job range {start_index+1} to {end_index}.")
