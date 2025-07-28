@@ -4,6 +4,13 @@ import time
 import sys
 import os
 
+# Check if the job_index argument is passed
+if len(sys.argv) < 2:
+    print("Please provide a job index.")
+    sys.exit(1)
+
+job_index = int(sys.argv[1])
+
 # Read the jobs from jobs.json
 try:
     with open('jobs.json', 'r') as f:
@@ -19,8 +26,12 @@ except Exception as e:
     print(f"Error reading jobs.json: {str(e)}")
     sys.exit(1)  # Exit for other errors
 
-# Select jobs 11 through 20 (Python list is 0-indexed, so 10:20 selects jobs 11-20)
-jobs_to_process = jobs_data[10:20]  # Jobs 11-20 are at indices 10-19
+# Calculate the start and end indices based on the job_index
+start_index = (job_index - 1) * 10
+end_index = start_index + 10
+
+# Select the appropriate range of jobs based on the job index
+jobs_to_process = jobs_data[start_index:end_index]
 
 # Set options for yt-dlp
 options = {
@@ -47,7 +58,7 @@ def download_video(url):
         # Optional: Pause for a short time before the next download
         time.sleep(2)
 
-# Process each job in the selected range (jobs 11-20)
+# Process each job in the selected range
 for job in jobs_to_process:
     url = job["url"]
     print(f"Starting download for {url}")
@@ -58,7 +69,7 @@ os.makedirs('output', exist_ok=True)
 os.system('mv *.vtt output/ || true')  # Move .vtt files to the output folder
 
 # Create a zip of the subtitles
-os.system('cd output && zip subtitles.zip *.vtt || echo "No subtitles to zip" && cd ..')
+os.system(f'cd output && zip subtitles{job_index}.zip *.vtt || echo "No subtitles to zip" && cd ..')
 
 # Ensure GitHub Action passes even if there's an error
 sys.exit(0)  # Forcefully exit with a success code (0)
