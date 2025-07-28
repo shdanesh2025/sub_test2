@@ -3,26 +3,30 @@ import json
 import time
 import sys
 
-# Load the jobs from jobs.json
+# Read the jobs from jobs.json
 try:
     with open('jobs.json', 'r') as f:
-        jobs_data = json.load(f)
+        content = f.read().strip()  # Strip leading/trailing spaces or empty lines
+        if not content:
+            print("jobs.json is empty!")
+            sys.exit(1)  # Exit with an error if the file is empty
+        jobs_data = json.loads(content)  # Parse the content as JSON
 except json.JSONDecodeError as e:
     print(f"JSONDecodeError: {str(e)}")
-    sys.exit(1)  # Exit with an error code if JSON is invalid
+    sys.exit(1)  # Exit if JSON is invalid
 except Exception as e:
     print(f"Error reading jobs.json: {str(e)}")
-    sys.exit(1)
+    sys.exit(1)  # Exit for other errors
 
-# Get the first URL from the list
+# Extract the URL from the first job
 if jobs_data:
-    first_job = jobs_data[0]  # Take the first job in the list
+    first_job = jobs_data[0]  # Get the first job in the list
     url = first_job["url"]
 else:
     print("No jobs found in jobs.json.")
-    sys.exit(1)  # Exit with an error code if no jobs are found
+    sys.exit(1)  # Exit if no jobs are found
 
-# Options for yt-dlp
+# Set options for yt-dlp
 options = {
     'writesubtitles': True,
     'writeautomaticsub': True,
