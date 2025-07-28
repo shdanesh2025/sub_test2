@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job_index: [1, 2, 3, 4]  # Limit to 4 parallel jobs for testing
+        job_index: [1]  # Limit to 4 parallel jobs for testing
     permissions:
       contents: write
 
