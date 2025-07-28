@@ -1,11 +1,18 @@
-import yt_dlp  # Make sure yt_dlp is imported
+import yt_dlp
 import json
 import time
 import sys
 
 # Load the jobs from jobs.json
-with open('jobs.json', 'r') as f:
-    jobs_data = json.load(f)
+try:
+    with open('jobs.json', 'r') as f:
+        jobs_data = json.load(f)
+except json.JSONDecodeError as e:
+    print(f"JSONDecodeError: {str(e)}")
+    sys.exit(1)  # Exit with an error code if JSON is invalid
+except Exception as e:
+    print(f"Error reading jobs.json: {str(e)}")
+    sys.exit(1)
 
 # Get the first URL from the list
 if jobs_data:
@@ -13,7 +20,7 @@ if jobs_data:
     url = first_job["url"]
 else:
     print("No jobs found in jobs.json.")
-    sys.exit(1)
+    sys.exit(1)  # Exit with an error code if no jobs are found
 
 # Options for yt-dlp
 options = {
@@ -25,7 +32,6 @@ options = {
     'cookiefile': 'cookies.txt',
 }
 
-# Function to download subtitles for the video
 def download_video(url):
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
@@ -41,7 +47,7 @@ def download_video(url):
         # Optional: Pause for a short time before the next download
         time.sleep(2)
 
-# Start the download process for the first URL
+# Start the download process
 download_video(url)
 
 # Ensure GitHub Action passes even if there's an error
