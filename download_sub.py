@@ -76,9 +76,13 @@ for job in jobs_data[start_index:end_index]:
 # If there are any .vtt files, zip them into one file
 if all_vtt_files:
     zip_filename = f"subtitles{job_index}.zip"
-    os.system(f"zip {zip_filename} {' '.join(all_vtt_files)} || echo 'No subtitles to zip'")
-
-    # Upload to Mega
-    upload_to_mega(zip_filename)
+    zip_command = f"zip -r \"{zip_filename}\" " + " ".join([f"\"{file}\"" for file in all_vtt_files])  # Wrap filenames in quotes
+    os.system(zip_command + " || echo 'No subtitles to zip'")
+    
+    # Check if the zip was successful and upload it
+    if os.path.exists(zip_filename):
+        upload_to_mega(zip_filename)
+    else:
+        print(f"Zip file {zip_filename} does not exist. Skipping upload.")
 else:
     print(f"No subtitles to zip or upload for job range {start_index+1} to {end_index}.")
