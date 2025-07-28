@@ -35,19 +35,14 @@ jobs:
           zip subtitles1.zip *.vtt || echo "No subtitles to zip"
           cd ..
 
-      - name: Pull latest changes from the remote repo
-        run: |
-          git pull origin main
-
-      - name: Commit and push for job 1
+      - name: Force-push to main branch
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add output/subtitles1.zip
           git commit -m "Add subtitles1.zip [auto]" || echo "Nothing to commit"
-          git push origin main
+          git push origin main --force
 
-  # Job 2
   download-job-2:
     runs-on: ubuntu-latest
     permissions:
@@ -79,19 +74,14 @@ jobs:
           zip subtitles2.zip *.vtt || echo "No subtitles to zip"
           cd ..
 
-      - name: Pull latest changes from the remote repo
-        run: |
-          git pull origin main
-
-      - name: Commit and push for job 2
+      - name: Force-push to main branch
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add output/subtitles2.zip
           git commit -m "Add subtitles2.zip [auto]" || echo "Nothing to commit"
-          git push origin main
+          git push origin main --force
 
-  # Job 3
   download-job-3:
     runs-on: ubuntu-latest
     permissions:
@@ -123,19 +113,14 @@ jobs:
           zip subtitles3.zip *.vtt || echo "No subtitles to zip"
           cd ..
 
-      - name: Pull latest changes from the remote repo
-        run: |
-          git pull origin main
-
-      - name: Commit and push for job 3
+      - name: Force-push to main branch
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add output/subtitles3.zip
           git commit -m "Add subtitles3.zip [auto]" || echo "Nothing to commit"
-          git push origin main
+          git push origin main --force
 
-  # Job 4
   download-job-4:
     runs-on: ubuntu-latest
     permissions:
@@ -167,14 +152,10 @@ jobs:
           zip subtitles4.zip *.vtt || echo "No subtitles to zip"
           cd ..
 
-      - name: Pull latest changes from the remote repo
-        run: |
-          git pull origin main
-
-      - name: Commit and push for job 4
+      - name: Force-push to main branch
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add output/subtitles4.zip
           git commit -m "Add subtitles4.zip [auto]" || echo "Nothing to commit"
-          git push origin main
+          git push origin main --force
