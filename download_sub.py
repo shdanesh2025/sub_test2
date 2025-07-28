@@ -1,10 +1,21 @@
 import yt_dlp  # Make sure yt_dlp is imported
-from yt_dlp import YoutubeDL
+import json
 import time
 import sys
 
-url = 'https://www.youtube.com/watch?v=blEIcn8yyjf'
+# Load the jobs from jobs.json
+with open('jobs.json', 'r') as f:
+    jobs_data = json.load(f)
 
+# Get the first URL from the list
+if jobs_data:
+    first_job = jobs_data[0]  # Take the first job in the list
+    url = first_job["url"]
+else:
+    print("No jobs found in jobs.json.")
+    sys.exit(1)
+
+# Options for yt-dlp
 options = {
     'writesubtitles': True,
     'writeautomaticsub': True,
@@ -14,9 +25,10 @@ options = {
     'cookiefile': 'cookies.txt',
 }
 
+# Function to download subtitles for the video
 def download_video(url):
     try:
-        with YoutubeDL(options) as ydl:
+        with yt_dlp.YoutubeDL(options) as ydl:
             ydl.download([url])
         print(f"Successfully downloaded subtitles for {url}")
     except yt_dlp.utils.DownloadError as e:
@@ -29,7 +41,7 @@ def download_video(url):
         # Optional: Pause for a short time before the next download
         time.sleep(2)
 
-# Start the download process
+# Start the download process for the first URL
 download_video(url)
 
 # Ensure GitHub Action passes even if there's an error
