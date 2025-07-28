@@ -2,17 +2,51 @@ import yt_dlp
 import time
 import json
 import sys
-from mega import Mega
 import os
+from mega import Mega
 
 # Function to upload a file to Mega
 def upload_to_mega(file_path):
     mega = Mega()
-    m = mega.login(email='shdanesh2025@gmail.com', password='1234qweR@!#$GH')  # Use your Mega login credentials
+    m = mega.login(email='your_mega_email@example.com', password='your_mega_password')  # Use your Mega login credentials
     print(f"Uploading {file_path} to Mega...")
-    file = m.upload(file_path)
-    m.get_upload_link(file)  # Generate the public link
-    print(f"Uploaded {file_path} to Mega. Link: {m.get_upload_link(file)}")
+    try:
+        file = m.upload(file_path)
+        link = m.get_upload_link(file)  # Generate the public link
+        print(f"Uploaded {file_path} to Mega. Link: {link}")
+    except Exception as e:
+        print(f"Failed to upload {file_path} to Mega. Error: {str(e)}")
+
+# Function to download subtitles with retries for rate limiting
+def download_subtitles(url, retries=3):
+    options = {
+        'writesubtitles': True,
+        'writeautomaticsub': True,
+        'subtitleslangs': ['en'],
+        'skip_download': True,
+        'outtmpl': '%(title)s.%(ext)s',
+        'cookiefile': 'cookies.txt',
+    }
+
+    for attempt in range(retries):
+        try:
+            with yt_dlp.YoutubeDL(options) as ydl:
+                ydl.download([url])
+            print(f"Successfully downloaded subtitles for {url}")
+            return True
+        except yt_dlp.utils.DownloadError as e:
+            print(f"Download error for {url}: {str(e)}")
+            time.sleep(5)  # wait before retrying
+        except yt_dlp.utils.ExtractorError as e:
+            print(f"Extractor error for {url}: {str(e)}")
+            return False
+        except Exception as e:
+            print(f"Unexpected error occurred for {url}: {str(e)}")
+            return False
+
+    # Even after retries, we don't fail, just log and continue
+    print(f"Failed to download subtitles for {url} after {retries} attempts, skipping upload.")
+    return False
 
 # Read job data from jobs.json
 with open('jobs.json') as f:
@@ -23,38 +57,22 @@ job_index = int(sys.argv[1])  # Get job index from command-line argument
 start_index = (job_index - 1) * 10
 end_index = start_index + 10
 
+# Iterate over the jobs in the specified range
 for job in jobs_data[start_index:end_index]:
     url = job["url"]
     job_id = job["job_id"]
-    
-    # Define download options for yt-dlp
-    options = {
-        'writesubtitles': True,
-        'writeautomaticsub': True,
-        'subtitleslangs': ['en'],
-        'skip_download': True,
-        'outtmpl': '%(title)s.%(ext)s',
-        'cookiefile': 'cookies.txt',
-    }
 
     # Download subtitles
-    try:
-        with yt_dlp.YoutubeDL(options) as ydl:
-            ydl.download([url])
-        print(f"Successfully downloaded subtitles for {url}")
-    except yt_dlp.utils.DownloadError as e:
-        print(f"Download error for {url}: {str(e)}")  # Video unavailable or other download errors
-    except yt_dlp.utils.ExtractorError as e:
-        print(f"Extractor error for {url}: {str(e)}")  # Issues with extracting video info
-    except Exception as e:
-        print(f"An unexpected error occurred for {url}: {str(e)}")  # Other unexpected errors
-    finally:
-        # Pause before next download (optional)
-        time.sleep(2)
+    if download_subtitles(url):
+        # Check if subtitle files exist before zipping
+        vtt_files = [f for f in os.listdir() if f.endswith('.vtt')]
+        if vtt_files:
+            zip_filename = f"subtitles{job_index}.zip"
+            os.system(f"zip {zip_filename} *.vtt || echo 'No subtitles to zip'")
 
-    # Zip subtitles into a file
-    zip_filename = f"subtitles{job_index}.zip"
-    os.system(f"zip {zip_filename} *.vtt || echo 'No subtitles to zip'")
-
-    # Upload to Mega
-    upload_to_mega(zip_filename)
+            # Upload to Mega
+            upload_to_mega(zip_filename)
+        else:
+            print(f"No subtitles found for {url}, skipping zipping and upload.")
+    else:
+        print(f"Skipping {url} due to download error.")
