@@ -12,12 +12,11 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # Checkout the code, including jobs.json
 
-      # If using GitHub Secrets to pass jobs.json:
-      - name: Write jobs.json to the workspace
-        run: echo "${{ secrets.JOBS_JSON }}" > jobs.json
-        # If jobs.json is in the repository, you can skip this step
+      # Debugging: Print the contents of jobs.json
+      - name: Print jobs.json content
+        run: cat jobs.json
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -48,4 +47,3 @@ jobs:
           git add output/subtitles.zip
           git commit -m "Add zipped subtitles [auto]" || echo "Nothing to commit"
           git push
- 
