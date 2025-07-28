@@ -4,8 +4,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  download-job-1:
+  download-subtitle:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job_index: [1, 2, 3, 4]  # Limit to 4 parallel jobs for testing
     permissions:
       contents: write
 
@@ -24,138 +27,21 @@ jobs:
       - name: Write YOUTUBE_COOKIES to cookies.txt
         run: echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
 
-      - name: Run download script for job 1
-        run: python download_sub.py 1
+      - name: Run download script
+        run: python download_sub.py ${{ matrix.job_index }}
 
-      - name: Zip subtitles for job 1
+      - name: Zip subtitles
         run: |
           mkdir -p output
           mv *.vtt output/ || true
           cd output
-          zip subtitles1.zip *.vtt || echo "No subtitles to zip"
+          zip subtitles${{ matrix.job_index }}.zip *.vtt || echo "No subtitles to zip"
           cd ..
 
       - name: Force-push to main branch
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add output/subtitles1.zip
-          git commit -m "Add subtitles1.zip [auto]" || echo "Nothing to commit"
-          git push origin main --force
-
-  download-job-2:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install yt-dlp
-        run: pip install yt-dlp
-
-      - name: Write YOUTUBE_COOKIES to cookies.txt
-        run: echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
-
-      - name: Run download script for job 2
-        run: python download_sub.py 2
-
-      - name: Zip subtitles for job 2
-        run: |
-          mkdir -p output
-          mv *.vtt output/ || true
-          cd output
-          zip subtitles2.zip *.vtt || echo "No subtitles to zip"
-          cd ..
-
-      - name: Force-push to main branch
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add output/subtitles2.zip
-          git commit -m "Add subtitles2.zip [auto]" || echo "Nothing to commit"
-          git push origin main --force
-
-  download-job-3:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install yt-dlp
-        run: pip install yt-dlp
-
-      - name: Write YOUTUBE_COOKIES to cookies.txt
-        run: echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
-
-      - name: Run download script for job 3
-        run: python download_sub.py 3
-
-      - name: Zip subtitles for job 3
-        run: |
-          mkdir -p output
-          mv *.vtt output/ || true
-          cd output
-          zip subtitles3.zip *.vtt || echo "No subtitles to zip"
-          cd ..
-
-      - name: Force-push to main branch
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add output/subtitles3.zip
-          git commit -m "Add subtitles3.zip [auto]" || echo "Nothing to commit"
-          git push origin main --force
-
-  download-job-4:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install yt-dlp
-        run: pip install yt-dlp
-
-      - name: Write YOUTUBE_COOKIES to cookies.txt
-        run: echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
-
-      - name: Run download script for job 4
-        run: python download_sub.py 4
-
-      - name: Zip subtitles for job 4
-        run: |
-          mkdir -p output
-          mv *.vtt output/ || true
-          cd output
-          zip subtitles4.zip *.vtt || echo "No subtitles to zip"
-          cd ..
-
-      - name: Force-push to main branch
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add output/subtitles4.zip
-          git commit -m "Add subtitles4.zip [auto]" || echo "Nothing to commit"
+          git add output/subtitles${{ matrix.job_index }}.zip
+          git commit -m "Add subtitles${{ matrix.job_index }}.zip [auto]" || echo "Nothing to commit"
           git push origin main --force
