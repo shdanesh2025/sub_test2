@@ -2,6 +2,7 @@ import yt_dlp
 import json
 import time
 import sys
+import os
 
 # Read the jobs from jobs.json
 try:
@@ -18,13 +19,8 @@ except Exception as e:
     print(f"Error reading jobs.json: {str(e)}")
     sys.exit(1)  # Exit for other errors
 
-# Extract the URL from the first job
-if jobs_data:
-    first_job = jobs_data[0]  # Get the first job in the list
-    url = first_job["url"]
-else:
-    print("No jobs found in jobs.json.")
-    sys.exit(1)  # Exit if no jobs are found
+# Select jobs 11 through 20 (Python list is 0-indexed, so 10:20 selects jobs 11-20)
+jobs_to_process = jobs_data[10:20]  # Jobs 11-20 are at indices 10-19
 
 # Set options for yt-dlp
 options = {
@@ -51,8 +47,18 @@ def download_video(url):
         # Optional: Pause for a short time before the next download
         time.sleep(2)
 
-# Start the download process
-download_video(url)
+# Process each job in the selected range (jobs 11-20)
+for job in jobs_to_process:
+    url = job["url"]
+    print(f"Starting download for {url}")
+    download_video(url)
+
+# Zip the downloaded subtitles and move them to the output directory
+os.makedirs('output', exist_ok=True)
+os.system('mv *.vtt output/ || true')  # Move .vtt files to the output folder
+
+# Create a zip of the subtitles
+os.system('cd output && zip subtitles.zip *.vtt || echo "No subtitles to zip" && cd ..')
 
 # Ensure GitHub Action passes even if there's an error
 sys.exit(0)  # Forcefully exit with a success code (0)
