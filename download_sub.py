@@ -1,49 +1,43 @@
 import yt_dlp
-import json
 import time
+import json
 import sys
+from mega import Mega
 import os
 
-# Check if the job_index argument is passed
-if len(sys.argv) < 2:
-    print("Please provide a job index.")
-    sys.exit(1)
+# Function to upload a file to Mega
+def upload_to_mega(file_path):
+    mega = Mega()
+    m = mega.login(email='your_mega_email@example.com', password='your_mega_password')  # Use your Mega login credentials
+    print(f"Uploading {file_path} to Mega...")
+    file = m.upload(file_path)
+    m.get_upload_link(file)  # Generate the public link
+    print(f"Uploaded {file_path} to Mega. Link: {m.get_upload_link(file)}")
 
-job_index = int(sys.argv[1])
+# Read job data from jobs.json
+with open('jobs.json') as f:
+    jobs_data = json.load(f)
 
-# Read the jobs from jobs.json
-try:
-    with open('jobs.json', 'r') as f:
-        content = f.read().strip()  # Strip leading/trailing spaces or empty lines
-        if not content:
-            print("jobs.json is empty!")
-            sys.exit(1)  # Exit with an error if the file is empty
-        jobs_data = json.loads(content)  # Parse the content as JSON
-except json.JSONDecodeError as e:
-    print(f"JSONDecodeError: {str(e)}")
-    sys.exit(1)  # Exit if JSON is invalid
-except Exception as e:
-    print(f"Error reading jobs.json: {str(e)}")
-    sys.exit(1)  # Exit for other errors
-
-# Calculate the start and end indices based on the job_index
+# Extract job range (example: from job 1 to job 10)
+job_index = int(sys.argv[1])  # Get job index from command-line argument
 start_index = (job_index - 1) * 10
 end_index = start_index + 10
 
-# Select the appropriate range of jobs based on the job index
-jobs_to_process = jobs_data[start_index:end_index]
+for job in jobs_data[start_index:end_index]:
+    url = job["url"]
+    job_id = job["job_id"]
+    
+    # Define download options for yt-dlp
+    options = {
+        'writesubtitles': True,
+        'writeautomaticsub': True,
+        'subtitleslangs': ['en'],
+        'skip_download': True,
+        'outtmpl': '%(title)s.%(ext)s',
+        'cookiefile': 'cookies.txt',
+    }
 
-# Set options for yt-dlp
-options = {
-    'writesubtitles': True,
-    'writeautomaticsub': True,
-    'subtitleslangs': ['en'],
-    'skip_download': True,
-    'outtmpl': '%(title)s.%(ext)s',
-    'cookiefile': 'cookies.txt',
-}
-
-def download_video(url):
+    # Download subtitles
     try:
         with yt_dlp.YoutubeDL(options) as ydl:
             ydl.download([url])
@@ -55,21 +49,12 @@ def download_video(url):
     except Exception as e:
         print(f"An unexpected error occurred for {url}: {str(e)}")  # Other unexpected errors
     finally:
-        # Optional: Pause for a short time before the next download
+        # Pause before next download (optional)
         time.sleep(2)
 
-# Process each job in the selected range
-for job in jobs_to_process:
-    url = job["url"]
-    print(f"Starting download for {url}")
-    download_video(url)
+    # Zip subtitles into a file
+    zip_filename = f"subtitles{job_index}.zip"
+    os.system(f"zip {zip_filename} *.vtt || echo 'No subtitles to zip'")
 
-# Zip the downloaded subtitles and move them to the output directory
-os.makedirs('output', exist_ok=True)
-os.system('mv *.vtt output/ || true')  # Move .vtt files to the output folder
-
-# Create a zip of the subtitles
-os.system(f'cd output && zip subtitles{job_index}.zip *.vtt || echo "No subtitles to zip" && cd ..')
-
-# Ensure GitHub Action passes even if there's an error
-sys.exit(0)  # Forcefully exit with a success code (0)
+    # Upload to Mega
+    upload_to_mega(zip_filename)
