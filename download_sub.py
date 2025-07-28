@@ -8,7 +8,7 @@ from mega import Mega
 # Function to upload a file to Mega
 def upload_to_mega(file_path):
     mega = Mega()
-    m = mega.login(email='your_mega_email@example.com', password='your_mega_password')  # Use your Mega login credentials
+    m = mega.login(email='shdanesh2025@gmail.com', password='1234qweR@!#$GH')  # Use your Mega login credentials
     print(f"Uploading {file_path} to Mega...")
     try:
         file = m.upload(file_path)
